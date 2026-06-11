@@ -233,32 +233,54 @@ class MainApp(ctk.CTk):
         header.pack(pady=10)
         
         # API Keys section
-        api_frame = ctk.CTkLabelFrame(self.tab_settings, text="API Keys")
+        api_frame = ctk.CTkFrame(self.tab_settings, fg_color="#2b2b2b")
         api_frame.pack(fill="x", padx=20, pady=10)
         
-        ctk.CTkLabel(api_frame, text="Gemini API Key:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.entry_gemini = ctk.CTkEntry(api_frame, width=400, show="*")
+        # API Title
+        ctk.CTkLabel(
+            api_frame, 
+            text="🔑 API Keys", 
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(anchor="w", padx=15, pady=(15, 10))
+        
+        # API Entries container
+        api_entries = ctk.CTkFrame(api_frame, fg_color="transparent")
+        api_entries.pack(fill="x", padx=15, pady=10)
+        
+        ctk.CTkLabel(api_entries, text="Gemini API Key:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.entry_gemini = ctk.CTkEntry(api_entries, width=400, show="*")
         self.entry_gemini.grid(row=0, column=1, padx=10, pady=5)
         
-        ctk.CTkLabel(api_frame, text="Finnhub API Key:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        self.entry_finnhub = ctk.CTkEntry(api_frame, width=400, show="*")
+        ctk.CTkLabel(api_entries, text="Finnhub API Key:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        self.entry_finnhub = ctk.CTkEntry(api_entries, width=400, show="*")
         self.entry_finnhub.grid(row=1, column=1, padx=10, pady=5)
         
-        ctk.CTkLabel(api_frame, text="Telegram Bot Token:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        self.entry_telegram = ctk.CTkEntry(api_frame, width=400, show="*")
+        ctk.CTkLabel(api_entries, text="Telegram Bot Token:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        self.entry_telegram = ctk.CTkEntry(api_entries, width=400, show="*")
         self.entry_telegram.grid(row=2, column=1, padx=10, pady=5)
         
         # Trading settings
-        trade_frame = ctk.CTkLabelFrame(self.tab_settings, text="Trading Settings")
+        trade_frame = ctk.CTkFrame(self.tab_settings, fg_color="#2b2b2b")
         trade_frame.pack(fill="x", padx=20, pady=10)
         
-        ctk.CTkLabel(trade_frame, text="Default Lot Size:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.entry_lot = ctk.CTkEntry(trade_frame, width=100)
+        # Trading Title
+        ctk.CTkLabel(
+            trade_frame, 
+            text="⚙️ Trading Settings", 
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(anchor="w", padx=15, pady=(15, 10))
+        
+        # Trading Entries container
+        trade_entries = ctk.CTkFrame(trade_frame, fg_color="transparent")
+        trade_entries.pack(fill="x", padx=15, pady=10)
+        
+        ctk.CTkLabel(trade_entries, text="Default Lot Size:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        self.entry_lot = ctk.CTkEntry(trade_entries, width=100)
         self.entry_lot.insert(0, "0.01")
         self.entry_lot.grid(row=0, column=1, padx=10, pady=5, sticky="w")
         
-        ctk.CTkLabel(trade_frame, text="Max Daily Loss %:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        self.entry_max_loss = ctk.CTkEntry(trade_frame, width=100)
+        ctk.CTkLabel(trade_entries, text="Max Daily Loss %:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        self.entry_max_loss = ctk.CTkEntry(trade_entries, width=100)
         self.entry_max_loss.insert(0, "2.0")
         self.entry_max_loss.grid(row=1, column=1, padx=10, pady=5, sticky="w")
         

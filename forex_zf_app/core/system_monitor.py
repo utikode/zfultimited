@@ -55,8 +55,11 @@ class SystemMonitor:
                 
                 # MT5 connection status
                 try:
-                    import MetaTrader5 as mt5
-                    self.metrics['mt5_connected'] = mt5.terminal_info().connected if mt5.terminal_info() else False
+                    try:
+                        import MetaTrader5 as mt5
+                        self.metrics['mt5_connected'] = mt5.terminal_info().connected if mt5.terminal_info() else False
+                    except ImportError:
+                        self.metrics['mt5_connected'] = False
                 except:
                     self.metrics['mt5_connected'] = False
                 

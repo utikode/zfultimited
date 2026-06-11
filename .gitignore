@@ -1,63 +1,69 @@
 ```
-# Python
-__pycache__/
+# Compiled and build artifacts
 *.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
+__pycache__/
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Dependencies
 .venv/
-.ENV
-.ENV.local
+venv/
+env/
+ENV/
 .env
 .env.local
 .env.*
-.venv/
-.ENV/
-.ENV.local/
-.env/
-.env.local/
-.env.*/
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+requirements.txt.bak
 *.egg-info/
-.installed.cfg
+
+# Build directories
+build/
+dist/
 *.egg
-MANIFEST
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Pytest
-.venv/
-.python-version
-.pytest_cache/
-.coverage
-htmlcov/
-coverage.xml
-
-# IDEs
-.vscode/
-.idea/
+# Logs and temp files
+*.log
+*.tmp
 *.swp
 *.swo
-*.tmp
-
-# OS
+*~
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+.cache
+.tox/
+
+# IDE specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+nbproject/
+.settings/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
