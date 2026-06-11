@@ -16,15 +16,33 @@ class AIEngine:
         self._initialize_gemini()
     
     def _initialize_gemini(self):
-        """Inisialisasi klien Gemini"""
+        """Inisialisasi klien Gemini dengan dukungan library baru dan lama"""
         if self.config.GEMINI_API_KEY:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.config.GEMINI_API_KEY)
-                self.gemini_client = genai.GenerativeModel('gemini-pro')
+                # Coba library baru terlebih dahulu (google-genai)
+                from google import genai
+                from google.genai import types
+                
+                client = genai.Client(api_key=self.config.GEMINI_API_KEY)
+                self.gemini_client = client
+                self.using_legacy = False
+                print("Gemini initialized with NEW library (google-genai)")
+            except ImportError:
+                try:
+                    # Fallback ke library lama (google-generativeai)
+                    import google.generativeai as genai
+                    genai.configure(api_key=self.config.GEMINI_API_KEY)
+                    self.gemini_client = genai.GenerativeModel('gemini-pro')
+                    self.using_legacy = True
+                    print("Gemini initialized with LEGACY library (google-generativeai)")
+                except Exception as e:
+                    print(f"Gemini initialization error: {e}")
+                    self.gemini_client = None
+                    self.using_legacy = False
             except Exception as e:
                 print(f"Gemini initialization error: {e}")
                 self.gemini_client = None
+                self.using_legacy = False
     
     def analyze(self, pair: str, market_data: Dict, math_metrics: Dict) -> Dict:
         """Analisis komprehensif menggunakan AI dan data eksternal"""
@@ -151,13 +169,22 @@ FORMAT RESPON (JSON saja, tanpa teks lain):
 """
     
     def _query_gemini(self, prompt: str) -> Optional[str]:
-        """Kirim query ke Gemini"""
+        """Kirim query ke Gemini dengan dukungan library baru dan lama"""
         if not self.gemini_client:
             return None
         
         try:
-            response = self.gemini_client.generate_content(prompt)
-            return response.text
+            if not self.using_legacy:
+                # Menggunakan library baru (google-genai)
+                response = self.gemini_client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=prompt
+                )
+                return response.text
+            else:
+                # Menggunakan library lama (google-generativeai)
+                response = self.gemini_client.generate_content(prompt)
+                return response.text
         except Exception as e:
             print(f"Gemini query error: {e}")
             return None
