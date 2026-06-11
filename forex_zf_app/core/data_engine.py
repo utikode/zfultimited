@@ -3,10 +3,17 @@ Data Engine - Implementasi Bab 2 & 7: Mekanika Data & Akuisisi Multi-Asset
 """
 
 import time
-import MetaTrader5 as mt5
 import pandas as pd
 from typing import Dict, List, Optional
 from datetime import datetime
+
+# Import MetaTrader5 dengan fallback untuk simulasi
+try:
+    import MetaTrader5 as mt5
+    MT5_AVAILABLE = True
+except ImportError:
+    MT5_AVAILABLE = False
+    print("MetaTrader5 not available, running in simulation mode")
 
 class DataEngine:
     """Mesin akuisisi dan manajemen data"""
@@ -20,6 +27,12 @@ class DataEngine:
         """Koneksi ke MetaTrader 5"""
         if self.mt5_connected:
             return True
+        
+        # Cek jika MT5 tidak tersedia
+        if not MT5_AVAILABLE:
+            print("MT5 module not available, running in simulation mode")
+            self.mt5_connected = False
+            return False
         
         try:
             # Coba inisialisasi MT5
@@ -44,7 +57,7 @@ class DataEngine:
     
     def disconnect_mt5(self):
         """Diskoneksi dari MT5"""
-        if self.mt5_connected:
+        if self.mt5_connected and MT5_AVAILABLE:
             mt5.shutdown()
             self.mt5_connected = False
     
@@ -57,6 +70,9 @@ class DataEngine:
     
     def _fetch_mt5_data(self, pair: str) -> Dict:
         """Ambil data dari MT5"""
+        if not MT5_AVAILABLE:
+            return self._generate_simulation_data(pair)
+            
         try:
             # Mapping pair forex ke simbol MT5
             symbol = pair if pair in ['EURUSD', 'GBPUSD', 'USDJPY'] else pair
@@ -140,6 +156,9 @@ class DataEngine:
     
     def _fetch_mt5_orderbook(self, pair: str) -> Dict:
         """Ambil order book dari MT5"""
+        if not MT5_AVAILABLE:
+            return self._generate_simulation_orderbook(pair)
+            
         try:
             book = mt5.order_book(pair)
             if book is None:

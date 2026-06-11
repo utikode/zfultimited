@@ -132,7 +132,12 @@ class ExecutionEngine:
     def _place_single_order(self, pair: str, order_type: str, lot: float) -> Dict:
         """Place single order ke MT5"""
         try:
-            import MetaTrader5 as mt5
+            # Cek ketersediaan MT5
+            try:
+                import MetaTrader5 as mt5
+                mt5_available = True
+            except ImportError:
+                return {'success': False, 'error': 'MT5 module not available', 'simulation': True}
             
             if not mt5.terminal_info().connected:
                 return {'success': False, 'error': 'MT5 not connected'}
