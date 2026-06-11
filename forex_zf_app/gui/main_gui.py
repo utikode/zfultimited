@@ -1,408 +1,334 @@
 """
-GUI Module - Antarmuka Pengguna Buku Besar Forex ZF
-Menggunakan CustomTkinter untuk tampilan modern
+Main GUI for Buku Besar Forex ZF V16.4-OMNI-WARROOM
+Built with CustomTkinter for modern UI
 """
 
 import customtkinter as ctk
+import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import Callable, Optional
 import threading
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+# Set Theme
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
 
 class MainApp(ctk.CTk):
-    """Aplikasi GUI Utama"""
-    
     def __init__(self, zf_core):
         super().__init__()
         
         self.zf_core = zf_core
-        self.title("Buku Besar Forex ZF V16.4-OMNI-WARROOM")
-        self.geometry("1400x900")
+        self.title("Buku Besar Forex ZF - V16.4 OMNI WARROOM")
+        self.geometry("1200x800")
         
-        # Configure theme
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        # Configure Grid
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         
-        # Create main layout
-        self._create_menu()
         self._create_main_frame()
         
-        # Start auto-refresh
-        self._refresh_data()
-    
-    def _create_menu(self):
-        """Buat menu bar"""
-        menubar = ctk.CTkFrame(self, height=50)
-        menubar.pack(fill="x", padx=10, pady=5)
-        
-        # Title
-        title_label = ctk.CTkLabel(
-            menubar, 
-            text="📘 BUKU BESAR FOREX ZF", 
-            font=ctk.CTkFont(size=20, weight="bold")
-        )
-        title_label.pack(side="left", padx=20)
-        
-        # Status indicator
-        self.status_label = ctk.CTkLabel(
-            menubar,
-            text="● Simulation Mode",
-            text_color="yellow"
-        )
-        self.status_label.pack(side="right", padx=20)
-    
     def _create_main_frame(self):
-        """Buat frame utama dengan tabs"""
-        main_frame = ctk.CTkFrame(self)
-        main_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        # Main Tab View
+        self.tab_view = ctk.CTkTabview(self)
+        self.tab_view.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
-        # Create tabview
-        self.tabview = ctk.CTkTabview(main_frame)
-        self.tabview.pack(fill="both", expand=True, padx=5, pady=5)
+        # Add Tabs
+        self.tab_dashboard = self.tab_view.add("Dashboard")
+        self.tab_predictions = self.tab_view.add("Predictions")
+        self.tab_warroom = self.tab_view.add("War Room")
+        self.tab_settings = self.tab_view.add("Settings")
+        self.tab_journal = self.tab_view.add("Journal")
         
-        # Add tabs
-        self.tab_dashboard = self.tabview.add("Dashboard")
-        self.tab_predictions = self.tabview.add("Prediksi AI")
-        self.tab_chart = self.tabview.add("Grafik TradingView")
-        self.tab_settings = self.tabview.add("Pengaturan")
-        self.tab_monitor = self.tabview.add("System Monitor")
-        
-        # Build each tab
+        # Build Content
         self._build_dashboard()
         self._build_predictions()
-        self._build_chart()
+        self._build_warroom()
         self._build_settings()
-        self._build_monitor()
-    
+        self._build_journal()
+        
     def _build_dashboard(self):
-        """Build dashboard tab"""
         # Header
-        header = ctk.CTkLabel(
-            self.tab_dashboard,
-            text="🎛️ Dashboard War Room",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        header.pack(pady=10)
+        header_frame = ctk.CTkFrame(self.tab_dashboard)
+        header_frame.pack(fill="x", padx=10, pady=5)
         
-        # Control buttons frame
-        btn_frame = ctk.CTkFrame(self.tab_dashboard)
-        btn_frame.pack(pady=10)
+        title_label = ctk.CTkLabel(header_frame, text="MARKET DASHBOARD", font=ctk.CTkFont(size=20, weight="bold"))
+        title_label.pack(side="left", padx=10)
         
-        self.btn_scan = ctk.CTkButton(
-            btn_frame,
-            text="🔍 Scan Market",
-            command=self._run_scan,
-            width=150
-        )
-        self.btn_scan.pack(side="left", padx=5)
+        self.scan_btn = ctk.CTkButton(header_frame, text="SCAN MARKET NOW", command=self._start_scan, fg_color="green")
+        self.scan_btn.pack(side="right", padx=10)
         
-        self.btn_trade = ctk.CTkButton(
-            btn_frame,
-            text="⚡ Auto Trading",
-            command=self._toggle_trading,
-            width=150
-        )
-        self.btn_trade.pack(side="left", padx=5)
+        self.status_label = ctk.CTkLabel(header_frame, text="Status: Idle", text_color="gray")
+        self.status_label.pack(side="right", padx=10)
         
-        self.btn_stop = ctk.CTkButton(
-            btn_frame,
-            text="🛑 Stop All",
-            fg_color="red",
-            command=self._stop_all,
-            width=150
-        )
-        self.btn_stop.pack(side="left", padx=5)
+        # Market Info Frame (Using standard LabelFrame for compatibility)
+        info_frame = tk.LabelFrame(self.tab_dashboard, text="Market Overview", bg='#2b2b2b', fg='#ffffff')
+        info_frame.pack(fill="both", expand=True, padx=10, pady=5)
         
-        # Stats frame
-        stats_frame = ctk.CTkFrame(self.tab_dashboard)
-        stats_frame.pack(fill="x", padx=20, pady=10)
+        # Simple Text Display for now
+        self.info_text = tk.Text(info_frame, bg='#1a1a1a', fg='#00ff00', font=("Consolas", 12))
+        self.info_text.pack(fill="both", expand=True, padx=5, pady=5)
         
-        self.lbl_zf_score = ctk.CTkLabel(stats_frame, text="Avg ZF-Score: 0.00")
-        self.lbl_zf_score.pack(side="left", padx=20, pady=10)
-        
-        self.lbl_signals = ctk.CTkLabel(stats_frame, text="Signals Today: 0")
-        self.lbl_signals.pack(side="left", padx=20, pady=10)
-        
-        self.lbl_pnl = ctk.CTkLabel(stats_frame, text="P&L: $0.00")
-        self.lbl_pnl.pack(side="left", padx=20, pady=10)
-        
-        # Log console
-        log_frame = ctk.CTkFrame(self.tab_dashboard)
-        log_frame.pack(fill="both", expand=True, padx=20, pady=10)
-        
-        ctk.CTkLabel(log_frame, text="📜 Activity Log").pack(anchor="w", padx=5, pady=5)
-        
-        self.log_text = ctk.CTkTextbox(log_frame, state="disabled")
-        self.log_text.pack(fill="both", expand=True, padx=5, pady=5)
-    
     def _build_predictions(self):
-        """Build predictions tab"""
-        header = ctk.CTkLabel(
-            self.tab_predictions,
-            text="🤖 Prediksi AI (Gemini + Finnhub)",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        header.pack(pady=10)
+        # Split into Up and Down
+        paned = ttk.PanedWindow(self.tab_predictions, orient=tk.HORIZONTAL)
+        paned.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # Refresh button
-        btn_refresh = ctk.CTkButton(
-            self.tab_predictions,
-            text="🔄 Regenerate Predictions",
-            command=self._refresh_predictions
-        )
-        btn_refresh.pack(pady=5)
+        # UP Frame
+        up_frame = tk.LabelFrame(paned, text="📈 PREDIKSI NAIK (10 DAYS)", bg='#2b2b2b', fg='#00ff00')
+        paned.add(up_frame, weight=1)
         
-        # Tables frame
-        tables_frame = ctk.CTkFrame(self.tab_predictions)
-        tables_frame.pack(fill="both", expand=True, padx=20, pady=10)
-        
-        # Bullish predictions
-        bullish_frame = ctk.CTkFrame(tables_frame)
-        bullish_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
-        
-        ctk.CTkLabel(
-            bullish_frame,
-            text="📈 PREDIKSI NAIK (10 Hari)",
-            font=ctk.CTkFont(weight="bold"),
-            text_color="green"
-        ).pack(pady=5)
-        
-        columns = ("Pair", "Price", "Drift%", "ZF-Score", "Confidence", "Target")
-        self.tree_bullish = ttk.Treeview(bullish_frame, columns=columns, show="headings", height=15)
+        columns = ("Pair", "Price", "Target", "Score", "Reason")
+        self.up_tree = ttk.Treeview(up_frame, columns=columns, show="headings", height=15)
         for col in columns:
-            self.tree_bullish.heading(col, text=col)
-            self.tree_bullish.column(col, width=100)
-        self.tree_bullish.pack(fill="both", expand=True, padx=5, pady=5)
+            self.up_tree.heading(col, text=col)
+            self.up_tree.column(col, width=100)
+            
+        scrollbar_up = ttk.Scrollbar(up_frame, orient=tk.VERTICAL, command=self.up_tree.yview)
+        self.up_tree.configure(yscroll=scrollbar_up.set)
         
-        # Bearish predictions
-        bearish_frame = ctk.CTkFrame(tables_frame)
-        bearish_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+        self.up_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar_up.pack(side="right", fill="y", pady=5)
         
-        ctk.CTkLabel(
-            bearish_frame,
-            text="📉 PREDIKSI TURUN (10 Hari)",
-            font=ctk.CTkFont(weight="bold"),
-            text_color="red"
-        ).pack(pady=5)
+        # DOWN Frame
+        down_frame = tk.LabelFrame(paned, text="📉 PREDIKSI TURUN (10 DAYS)", bg='#2b2b2b', fg='#ff0000')
+        paned.add(down_frame, weight=1)
         
-        self.tree_bearish = ttk.Treeview(bearish_frame, columns=columns, show="headings", height=15)
+        self.down_tree = ttk.Treeview(down_frame, columns=columns, show="headings", height=15)
         for col in columns:
-            self.tree_bearish.heading(col, text=col)
-            self.tree_bearish.column(col, width=100)
-        self.tree_bearish.pack(fill="both", expand=True, padx=5, pady=5)
-    
-    def _build_chart(self):
-        """Build chart tab with TradingView widget"""
-        header = ctk.CTkLabel(
-            self.tab_chart,
-            text="📊 Grafik TradingView Custom",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        header.pack(pady=10)
+            self.down_tree.heading(col, text=col)
+            self.down_tree.column(col, width=100)
+            
+        scrollbar_down = ttk.Scrollbar(down_frame, orient=tk.VERTICAL, command=self.down_tree.yview)
+        self.down_tree.configure(yscroll=scrollbar_down.set)
         
-        # Pair selector
-        pair_frame = ctk.CTkFrame(self.tab_chart)
-        pair_frame.pack(fill="x", padx=20, pady=5)
+        self.down_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar_down.pack(side="right", fill="y", pady=5)
         
-        ctk.CTkLabel(pair_frame, text="Select Pair:").pack(side="left", padx=5)
+    def _build_warroom(self):
+        # War Room: Visualizations & Controls
+        control_frame = ctk.CTkFrame(self.tab_warroom)
+        control_frame.pack(fill="x", padx=10, pady=5)
         
-        self.pair_var = ctk.StringVar(value="EURUSD")
-        pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD"]
-        pair_combo = ctk.CTkComboBox(pair_frame, values=pairs, variable=self.pair_var)
-        pair_combo.pack(side="left", padx=5)
+        ctk.CTkLabel(control_frame, text="WAR ROOM CONTROL", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=10)
         
-        pair_combo.configure(command=lambda _: self._update_chart())
+        self.auto_toggle = ctk.CTkSwitch(control_frame, text="Auto Trading", command=self._toggle_auto)
+        self.auto_toggle.pack(side="right", padx=10)
         
-        # Chart placeholder (akan diimplementasikan dengan iframe atau library plotting)
-        chart_frame = ctk.CTkFrame(self.tab_chart)
-        chart_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        # Placeholder for Charts/Visuals
+        visual_frame = tk.LabelFrame(self.tab_warroom, text="Manifold Visualization (TradingView Integration)", bg='#2b2b2b', fg='#ffffff')
+        visual_frame.pack(fill="both", expand=True, padx=10, pady=5)
         
-        self.chart_label = ctk.CTkLabel(
-            chart_frame,
-            text="TradingView Chart Widget\n(Integrasi iframe TradingView)",
-            font=ctk.CTkFont(size=16)
-        )
-        self.chart_label.pack(expand=True)
-    
+        self.visual_label = ctk.CTkLabel(visual_frame, text="Chart Area - Integration Pending\nSelect a pair from predictions to load chart.")
+        self.visual_label.place(relx=0.5, rely=0.5, anchor="center")
+        
     def _build_settings(self):
-        """Build settings tab"""
-        header = ctk.CTkLabel(
-            self.tab_settings,
-            text="⚙️ Pengaturan",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        header.pack(pady=10)
+        scroll_frame = ctk.CTkScrollableFrame(self.tab_settings)
+        scroll_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        # API Keys section
-        api_frame = ctk.CTkFrame(self.tab_settings, fg_color="#2b2b2b")
-        api_frame.pack(fill="x", padx=20, pady=10)
+        # API Keys Section
+        api_frame = tk.LabelFrame(scroll_frame, text="API Keys Configuration", bg='#2b2b2b', fg='#ffffff')
+        api_frame.pack(fill="x", padx=10, pady=10)
         
-        # API Title
-        ctk.CTkLabel(
-            api_frame, 
-            text="🔑 API Keys", 
-            font=ctk.CTkFont(size=16, weight="bold")
-        ).pack(anchor="w", padx=15, pady=(15, 10))
+        # Gemini
+        ctk.CTkLabel(api_frame, text="Google Gemini API Key:", bg='#2b2b2b', fg='white').grid(row=0, column=0, sticky="w", padx=10, pady=5)
+        self.gemini_entry = ctk.CTkEntry(api_frame, width=400, show="*")
+        self.gemini_entry.grid(row=0, column=1, padx=10, pady=5)
         
-        # API Entries container
-        api_entries = ctk.CTkFrame(api_frame, fg_color="transparent")
-        api_entries.pack(fill="x", padx=15, pady=10)
+        # Finnhub
+        ctk.CTkLabel(api_frame, text="Finnhub API Key:", bg='#2b2b2b', fg='white').grid(row=1, column=0, sticky="w", padx=10, pady=5)
+        self.finnhub_entry = ctk.CTkEntry(api_frame, width=400, show="*")
+        self.finnhub_entry.grid(row=1, column=1, padx=10, pady=5)
         
-        ctk.CTkLabel(api_entries, text="Gemini API Key:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.entry_gemini = ctk.CTkEntry(api_entries, width=400, show="*")
-        self.entry_gemini.grid(row=0, column=1, padx=10, pady=5)
+        # Telegram
+        ctk.CTkLabel(api_frame, text="Telegram Bot Token:", bg='#2b2b2b', fg='white').grid(row=2, column=0, sticky="w", padx=10, pady=5)
+        self.tg_token_entry = ctk.CTkEntry(api_frame, width=400, show="*")
+        self.tg_token_entry.grid(row=2, column=1, padx=10, pady=5)
         
-        ctk.CTkLabel(api_entries, text="Finnhub API Key:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        self.entry_finnhub = ctk.CTkEntry(api_entries, width=400, show="*")
-        self.entry_finnhub.grid(row=1, column=1, padx=10, pady=5)
+        ctk.CTkLabel(api_frame, text="Telegram Chat ID:", bg='#2b2b2b', fg='white').grid(row=3, column=0, sticky="w", padx=10, pady=5)
+        self.tg_chat_entry = ctk.CTkEntry(api_frame, width=400)
+        self.tg_chat_entry.grid(row=3, column=1, padx=10, pady=5)
         
-        ctk.CTkLabel(api_entries, text="Telegram Bot Token:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        self.entry_telegram = ctk.CTkEntry(api_entries, width=400, show="*")
-        self.entry_telegram.grid(row=2, column=1, padx=10, pady=5)
+        detect_btn = ctk.CTkButton(api_frame, text="Auto-Detect Chat ID", command=self._detect_chat_id, width=150)
+        detect_btn.grid(row=4, column=1, sticky="e", padx=10, pady=10)
         
-        # Trading settings
-        trade_frame = ctk.CTkFrame(self.tab_settings, fg_color="#2b2b2b")
-        trade_frame.pack(fill="x", padx=20, pady=10)
+        # Risk Settings
+        risk_frame = tk.LabelFrame(scroll_frame, text="Risk Management", bg='#2b2b2b', fg='#ffffff')
+        risk_frame.pack(fill="x", padx=10, pady=10)
         
-        # Trading Title
-        ctk.CTkLabel(
-            trade_frame, 
-            text="⚙️ Trading Settings", 
-            font=ctk.CTkFont(size=16, weight="bold")
-        ).pack(anchor="w", padx=15, pady=(15, 10))
+        ctk.CTkLabel(risk_frame, text="Risk Per Trade (%):", bg='#2b2b2b', fg='white').grid(row=0, column=0, sticky="w", padx=10, pady=5)
+        self.risk_entry = ctk.CTkEntry(risk_frame, width=100)
+        self.risk_entry.grid(row=0, column=1, sticky="w", padx=10, pady=5)
         
-        # Trading Entries container
-        trade_entries = ctk.CTkFrame(trade_frame, fg_color="transparent")
-        trade_entries.pack(fill="x", padx=15, pady=10)
+        ctk.CTkLabel(risk_frame, text="Max Daily Loss (%):", bg='#2b2b2b', fg='white').grid(row=1, column=0, sticky="w", padx=10, pady=5)
+        self.max_loss_entry = ctk.CTkEntry(risk_frame, width=100)
+        self.max_loss_entry.grid(row=1, column=1, sticky="w", padx=10, pady=5)
         
-        ctk.CTkLabel(trade_entries, text="Default Lot Size:").grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        self.entry_lot = ctk.CTkEntry(trade_entries, width=100)
-        self.entry_lot.insert(0, "0.01")
-        self.entry_lot.grid(row=0, column=1, padx=10, pady=5, sticky="w")
+        # Save Button
+        save_btn = ctk.CTkButton(scroll_frame, text="SAVE CONFIGURATION", command=self._save_settings, height=40, fg_color="green")
+        save_btn.pack(pady=20)
         
-        ctk.CTkLabel(trade_entries, text="Max Daily Loss %:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        self.entry_max_loss = ctk.CTkEntry(trade_entries, width=100)
-        self.entry_max_loss.insert(0, "2.0")
-        self.entry_max_loss.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+        # Load existing config
+        self._load_settings_to_ui()
         
-        # Save button
-        btn_save = ctk.CTkButton(
-            self.tab_settings,
-            text="💾 Save Settings",
-            command=self._save_settings
-        )
-        btn_save.pack(pady=20)
+    def _build_journal(self):
+        journal_frame = tk.LabelFrame(self.tab_journal, text="Trade History (Archival Vault)", bg='#2b2b2b', fg='#ffffff')
+        journal_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        columns = ("Time", "Symbol", "Action", "Volume", "SL", "TP", "Status")
+        self.journal_tree = ttk.Treeview(journal_frame, columns=columns, show="headings", height=20)
+        for col in columns:
+            self.journal_tree.heading(col, text=col)
+            self.journal_tree.column(col, width=100)
+            
+        scrollbar = ttk.Scrollbar(journal_frame, orient=tk.VERTICAL, command=self.journal_tree.yview)
+        self.journal_tree.configure(yscroll=scrollbar.set)
+        
+        self.journal_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar.pack(side="right", fill="y", pady=5)
+        
+        # Refresh Button
+        refresh_btn = ctk.CTkButton(self.tab_journal, text="Refresh Journal", command=self._refresh_journal)
+        refresh_btn.pack(pady=10)
+        
+        self._refresh_journal()
+        
+    # --- Actions & Logic ---
     
-    def _build_monitor(self):
-        """Build system monitor tab"""
-        header = ctk.CTkLabel(
-            self.tab_monitor,
-            text="🖥️ System Health Monitor",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        header.pack(pady=10)
+    def _start_scan(self):
+        self.scan_btn.configure(state="disabled", text="Scanning...")
+        self.status_label.configure(text="Status: Scanning...", text_color="orange")
         
-        # Metrics frame
-        metrics_frame = ctk.CTkFrame(self.tab_monitor)
-        metrics_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        # Run in thread to avoid freezing UI
+        thread = threading.Thread(target=self._run_scan)
+        thread.daemon = True
+        thread.start()
         
-        self.lbl_cpu = ctk.CTkLabel(metrics_frame, text="CPU Usage: 0%")
-        self.lbl_cpu.pack(pady=5)
-        
-        self.lbl_memory = ctk.CTkLabel(metrics_frame, text="Memory Usage: 0%")
-        self.lbl_memory.pack(pady=5)
-        
-        self.lbl_mt5 = ctk.CTkLabel(metrics_frame, text="MT5 Connected: No")
-        self.lbl_mt5.pack(pady=5)
-        
-        self.lbl_uptime = ctk.CTkLabel(metrics_frame, text="Uptime: 00:00:00")
-        self.lbl_uptime.pack(pady=5)
-        
-        self.lbl_health = ctk.CTkLabel(metrics_frame, text="Health Status: HEALTHY")
-        self.lbl_health.pack(pady=5)
-    
-    def _log_message(self, message: str):
-        """Add message to log"""
-        self.log_text.configure(state="normal")
-        timestamp = threading.current_thread().name
-        self.log_text.insert("end", f"[{timestamp}] {message}\n")
-        self.log_text.see("end")
-        self.log_text.configure(state="disabled")
-    
     def _run_scan(self):
-        """Run market scan"""
-        self._log_message("Starting market scan...")
-        # Implementasi scan akan dipanggil dari zf_core
-    
-    def _toggle_trading(self):
-        """Toggle auto trading"""
-        self._log_message("Auto trading toggled")
-    
-    def _stop_all(self):
-        """Stop all operations"""
-        self._log_message("Stopping all operations...")
-        if self.zf_core:
-            self.zf_core.shutdown()
-    
-    def _refresh_predictions(self):
-        """Refresh predictions table"""
+        try:
+            results = self.zf_core.scan_market(callback=self._update_predictions_ui)
+            if not results:
+                raise Exception("Scan returned no results")
+        except Exception as e:
+            logger.error(f"Scan thread error: {e}")
+            self.after(0, lambda: messagebox.showerror("Scan Error", str(e)))
+        finally:
+            self.after(0, self._reset_scan_btn)
+            
+    def _reset_scan_btn(self):
+        self.scan_btn.configure(state="normal", text="SCAN MARKET NOW")
+        self.status_label.configure(text="Status: Idle", text_color="gray")
+        
+    def _update_predictions_ui(self, predictions):
+        """Update Treeviews with prediction data"""
         # Clear existing
-        for item in self.tree_bullish.get_children():
-            self.tree_bullish.delete(item)
-        for item in self.tree_bearish.get_children():
-            self.tree_bearish.delete(item)
+        for item in self.up_tree.get_children():
+            self.up_tree.delete(item)
+        for item in self.down_tree.get_children():
+            self.down_tree.delete(item)
+            
+        # Populate UP
+        if "up" in predictions:
+            for p in predictions["up"]:
+                self.up_tree.insert("", "end", values=(
+                    p.get("pair", "N/A"),
+                    f"{p.get('current', 0):.5f}",
+                    f"{p.get('target', 0):.5f}",
+                    f"{p.get('score', 0):.2f}",
+                    p.get("reason", "")
+                ))
+                
+        # Populate DOWN
+        if "down" in predictions:
+            for p in predictions["down"]:
+                self.down_tree.insert("", "end", values=(
+                    p.get("pair", "N/A"),
+                    f"{p.get('current', 0):.5f}",
+                    f"{p.get('target', 0):.5f}",
+                    f"{p.get('score', 0):.2f}",
+                    p.get("reason", "")
+                ))
+                
+        # Update Info Text
+        self.info_text.delete("1.0", "end")
+        self.info_text.insert("end", f"Scan Completed: {datetime.now()}\n")
+        self.info_text.insert("end", f"Pairs Analyzed: {len(self.zf_core.active_pairs)}\n")
+        self.info_text.insert("end", f"Bullish Signals: {len(predictions.get('up', []))}\n")
+        self.info_text.insert("end", f"Bearish Signals: {len(predictions.get('down', []))}\n")
         
-        # Add sample data (akan diganti dengan data real dari zf_core)
-        bullish_data = [
-            ("EURUSD", "1.0850", "2.5", "0.75", "85%", "1.0920"),
-            ("GBPUSD", "1.2650", "3.1", "0.82", "90%", "1.2780"),
-        ]
+    def _load_settings_to_ui(self):
+        cfg = self.zf_core.get_config()
+        self.gemini_entry.insert(0, cfg.get("gemini_api_key", ""))
+        self.finnhub_entry.insert(0, cfg.get("finnhub_api_key", ""))
+        self.tg_token_entry.insert(0, cfg.get("telegram_token", ""))
+        self.tg_chat_entry.insert(0, cfg.get("telegram_chat_id", ""))
+        self.risk_entry.insert(0, str(cfg.get("risk_per_trade", 1.0)))
+        self.max_loss_entry.insert(0, str(cfg.get("max_daily_loss", 5.0)))
         
-        bearish_data = [
-            ("USDJPY", "157.50", "2.8", "0.78", "88%", "155.20"),
-            ("USDCHF", "0.8950", "2.2", "0.71", "82%", "0.8850"),
-        ]
-        
-        for row in bullish_data:
-            self.tree_bullish.insert("", "end", values=row)
-        
-        for row in bearish_data:
-            self.tree_bearish.insert("", "end", values=row)
-    
-    def _update_chart(self):
-        """Update chart for selected pair"""
-        pair = self.pair_var.get()
-        self._log_message(f"Updating chart for {pair}")
-    
     def _save_settings(self):
-        """Save settings"""
-        gemini_key = self.entry_gemini.get()
-        finnhub_key = self.entry_finnhub.get()
-        telegram_token = self.entry_telegram.get()
+        new_config = {
+            "gemini_api_key": self.gemini_entry.get(),
+            "finnhub_api_key": self.finnhub_entry.get(),
+            "telegram_token": self.tg_token_entry.get(),
+            "telegram_chat_id": self.tg_chat_entry.get(),
+            "risk_per_trade": float(self.risk_entry.get() or 1.0),
+            "max_daily_loss": float(self.max_loss_entry.get() or 5.0)
+        }
+        self.zf_core.save_config(new_config)
+        messagebox.showinfo("Success", "Configuration saved successfully!")
         
-        if self.zf_core:
-            self.zf_core.config.GEMINI_API_KEY = gemini_key
-            self.zf_core.config.FINNHUB_API_KEY = finnhub_key
-            self.zf_core.config.TELEGRAM_BOT_TOKEN = telegram_token
-            self.zf_core.config.DEFAULT_LOT_SIZE = float(self.entry_lot.get())
-            self.zf_core.config.MAX_DAILY_LOSS_PERCENT = float(self.entry_max_loss.get())
+    def _detect_chat_id(self):
+        token = self.tg_token_entry.get().strip()
+        if not token:
+            messagebox.showwarning("Warning", "Please enter Bot Token first")
+            return
             
-            # Update AI engine
-            self.zf_core.ai_engine.update_api_key(gemini_key)
-        
-        self._log_message("Settings saved successfully")
-        messagebox.showinfo("Success", "Settings saved!")
-    
-    def _refresh_data(self):
-        """Periodic data refresh"""
-        if self.zf_core and self.zf_core.is_running:
-            metrics = self.zf_core.system_monitor.get_metrics()
+        # Simple API call to get updates and extract chat_id
+        try:
+            import requests
+            url = f"https://api.telegram.org/bot{token}/getUpdates"
+            response = requests.get(url)
+            data = response.json()
             
-            # Update monitor tab
-            self.lbl_cpu.configure(text=f"CPU Usage: {metrics['cpu_usage']}%")
-            self.lbl_memory.configure(text=f"Memory Usage: {metrics['memory_usage']}%")
-            self.lbl_mt5.configure(text=f"MT5 Connected: {'Yes' if metrics['mt5_connected'] else 'No'}")
-            self.lbl_uptime.configure(text=f"Uptime: {self.zf_core.system_monitor.format_uptime()}")
-            self.lbl_health.configure(text=f"Health Status: {self.zf_core.system_monitor.get_health_status()}")
+            if data.get("ok"):
+                results = data.get("result", [])
+                if results:
+                    # Get chat_id from last message
+                    chat_id = results[-1]["message"]["chat"]["id"]
+                    self.tg_chat_entry.delete(0, "end")
+                    self.tg_chat_entry.insert(0, str(chat_id))
+                    messagebox.showinfo("Success", f"Chat ID detected: {chat_id}")
+                else:
+                    messagebox.showwarning("Info", "No messages found. Send /start to your bot first.")
+            else:
+                messagebox.showerror("Error", "Invalid Token or API Error")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            
+    def _toggle_auto(self):
+        state = "ON" if self.auto_toggle.get() else "OFF"
+        logger.info(f"Auto Trading switched {state}")
         
-        # Schedule next refresh
-        self.after(5000, self._refresh_data)
+    def _refresh_journal(self):
+        # Clear
+        for item in self.journal_tree.get_children():
+            self.journal_tree.delete(item)
+            
+        # Load from storage
+        history = self.zf_core.storage_engine.get_history()
+        for trade in reversed(history): # Newest first
+            self.journal_tree.insert("", "end", values=(
+                trade.get("time", "")[:19], # Cut microseconds
+                trade.get("symbol", ""),
+                trade.get("action", ""),
+                trade.get("volume", ""),
+                trade.get("sl", ""),
+                trade.get("tp", ""),
+                trade.get("status", "")
+            ))
+
+def run_gui(zf_core):
+    app = MainApp(zf_core)
+    app.mainloop()

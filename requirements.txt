@@ -1,0 +1,9 @@
+customtkinter>=5.2.0
+MetaTrader5>=5.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+
+# Optional: For real AI integration (uncomment if needed)
+# google-genai>=0.1.0 
+# finnhub-python>=2.4.0
