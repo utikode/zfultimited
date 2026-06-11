@@ -1,0 +1,23 @@
+# Buku Besar Forex ZF - Requirements
+# Zuhri Formalism V16.4-OMNI-WARROOM
+
+# Core Dependencies
+numpy>=1.24.0
+pandas>=2.0.0
+
+# GUI
+customtkinter>=5.2.0
+ttkbootstrap>=1.10.0
+
+# AI & API
+google-generativeai>=0.3.0
+requests>=2.31.0
+
+# Trading
+MetaTrader5>=5.0.45
+
+# Data & Storage
+psutil>=5.9.0
+
+# Optional: Visualization
+plotly>=5.18.0
